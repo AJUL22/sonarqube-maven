@@ -51,11 +51,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn -B -DskipTests=true clean verify
+         mvn -B clean verify \
+         org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+         -Dsonar.projectKey=your-org_your-repo \
+         -Dsonar.projectName="sonarqube-maven" \
+         -Dsonar.host.url=${SONAR_HOST_URL}
 
-          mvn -B \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=your-org_your-repo \
-            -Dsonar.projectName="sonarqube-maven" \
-            -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.login=${SONAR_TOKEN}
