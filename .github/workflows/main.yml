@@ -55,21 +55,4 @@ jobs:
           #   -Dsonar.host.url=https://sonarcloud.io \
           #   -Dsonar.organization=your-organization-key \
           #   -Dsonar.login=${SONAR_TOKEN}
-- name: Sonar debug checks
-  env:
-    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-  run: |
-    echo "Server reachable?"
-    curl -v ${SONAR_HOST_URL}/api/server/version || true
 
-    echo "Check project components (may be empty if not created):"
-    curl -s -u ${SONAR_TOKEN}: "${SONAR_HOST_URL}/api/components/search?component=your-org_your-repo" || true
-
-    echo "Run a dry analysis attempt (verbose) to show exact failure:"
-    mvn -X -e -B -DskipTests=true \
-      org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-      -Dsonar.host.url=${SONAR_HOST_URL} \
-      -Dsonar.projectKey=your-org_your-repo \
-      -Dsonar.login=${SONAR_TOKEN} \
-      -Dsonar.verbose=true || true
