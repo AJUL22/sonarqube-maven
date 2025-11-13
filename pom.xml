@@ -15,8 +15,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version> <!-- Latest stable as of late 2025 -->
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>3.3.5</version>
+        <relativePath/>
     </parent>
 
     <properties>
@@ -24,13 +24,11 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Web Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Testing (optional) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -40,9 +38,25 @@
 
     <build>
         <plugins>
+            <!-- make sure compiler plugin is set to Java 17 -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!-- explicitly configure Spring Boot plugin with the main class -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.5</version>
+                <configuration>
+                    <!-- Fully-qualified name of the class with main() -->
+                    <mainClass>com.example.demo.App</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
