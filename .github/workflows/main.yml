@@ -43,7 +43,7 @@ jobs:
           mvn -B verify \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=your-org_your-repo \
-            -Dsonar.projectName="your-repo" \
+            -Dsonar.projectName="https://github.com/AJUL22/sonarqube-maven.git" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
             -Dsonar.login=${SONAR_TOKEN}
           
@@ -51,7 +51,7 @@ jobs:
           # mvn -B verify \
           #   org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           #   -Dsonar.projectKey=your-org_your-repo \
-          #   -Dsonar.projectName="your-repo" \
+          #   -Dsonar.projectName="https://github.com/AJUL22/sonarqube-maven.git" \
           #   -Dsonar.host.url=https://sonarcloud.io \
           #   -Dsonar.organization=your-organization-key \
           #   -Dsonar.login=${SONAR_TOKEN}
