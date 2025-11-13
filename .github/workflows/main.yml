@@ -1,60 +1,39 @@
-name: Sonar Debug (diagnose)
+name: Build & SonarQube
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
-  debug:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'zulu'
 
-      - name: Cache Maven (optional)
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Sonar connectivity quick checks
+      - name: Sonar checks
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          echo "=== server version (auth test) ==="
           curl -v -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/server/version" || true
-          echo
-          echo "=== project search (may be empty) ==="
           curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/components/search?component=your-project-key" || true
 
-      - name: Run scanner in debug (collect logs)
-        continue-on-error: true
+      - name: Build
+        run: mvn -B -DskipTests=true clean verify
+
+      - name: SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          # build first (skip tests for speed)
-          mvn -B -DskipTests=true clean verify || true
-
-          # run Sonar scanner with full debug and verbose
-          mvn -X -e -B \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=your-project-key \
-            -Dsonar.projectName="my-app" \
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.login=${SONAR_TOKEN} \
-            -Dsonar.verbose=true 2>&1 | tee sonar-debug.log || true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sonar-debug-log
-          path: sonar-debug.log
+            -Dsonar.projectKey=your-project-key \
+            -Dsonar.projectName="my-app"
