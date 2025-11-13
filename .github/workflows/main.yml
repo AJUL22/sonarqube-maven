@@ -35,25 +35,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-       - name: Sonar quick checks
-        env:
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-       run: |
-            echo "=== Server version (should return 200 & a version) ==="
-           curl -v -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/server/version" || true
-
-         echo "=== Project exists? (may return empty JSON) ==="
-        curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/components/search?component=your-org_your-repo" || true
-
-        echo "=== Is TLS/SSL okay? show remote cert subject ==="
-        echo | openssl s_client -connect $(echo ${SONAR_HOST_URL} | sed -E 's|https?://||') 2>/dev/null | sed -n '1,5p' || true
-
-        echo "=== JVM / Maven versions ==="
-        java -version || true
-        mvn -v || true
-
-
       - name: Sonar connectivity & token quick checks
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
