@@ -1,59 +1,43 @@
-name: Build
+name: Build Debug
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build and analyze
+  debug:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'zulu'
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Sonar connectivity & token quick checks
+      - name: Sonar quick checks
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          echo "=== Server version (if reachable) ==="
-          curl -sSf ${SONAR_HOST_URL}/api/server/version || echo "server not reachable or returned non-200"
+          curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/server/version" || true
+          curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/components/search?component=your-org_your-repo" || true
 
-          echo "=== Does project exist? (may be empty) ==="
-          curl -s -u ${SONAR_TOKEN}: "${SONAR_HOST_URL}/api/components/search?component=your-org_your-repo" || echo "project check failed"
-      
-      - name: Build and analyze
+      - name: Run sonar (diagnose, allow failure)
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-         mvn -B clean verify \
-         org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-         -Dsonar.projectKey=your-org_your-repo \
-         -Dsonar.projectName="sonarqube-maven" \
-         -Dsonar.host.url=${SONAR_HOST_URL}
-
+          mvn -X -e -B clean verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=your-org_your-repo \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_TOKEN} \
+            -Dsonar.verbose=true 2>&1 | tee sonar-debug.log
+        # upload the log for easy download/inspection
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sonar-debug-log
+          path: sonar-debug.log
